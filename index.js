@@ -1,116 +1,82 @@
-const aggregation = (baseClass, ...mixins) => {
-  class base extends baseClass {
-    constructor(...args) {
-      super(...args);
-      mixins.forEach((mixin) => {
-        copyProps(this, new mixin());
-      });
-    }
-  }
-  const copyProps = (target, source) => {
-    // this function copies all properties and symbols, filtering out some special ones
-    Object.getOwnPropertyNames(source)
-      .concat(Object.getOwnPropertySymbols(source))
-      .forEach((prop) => {
-        if (
-          !prop.match(
-            /^(?:constructor|prototype|arguments|caller|name|bind|call|apply|toString|length)$/
-          )
-        )
-          Object.defineProperty(
-            target,
-            prop,
-            Object.getOwnPropertyDescriptor(source, prop)
-          );
-      });
-  };
-  mixins.forEach((mixin) => {
-    // outside constructor() to allow aggregation(A,B,C).staticFunction() to be called etc.
-    copyProps(base.prototype, mixin.prototype);
-    copyProps(base, mixin);
-  });
-  return base;
-};
+let Relationship = Object.freeze({
+  parent: 0,
+  child: 1,
+  sibling: 2,
+});
 
-class Document {}
-
-class Machine {
-  constructor() {
-    if (this.constructor.name === 'Machine')
-      throw new Error('Machine is abstract!');
-  }
-
-  print(doc) {}
-  fax(doc) {
-    console.log(34);
-  }
-  scan(doc) {}
-}
-
-class MultiFunctionPrinter extends Machine {
-  print(doc) {
-    //
-  }
-
-  fax(doc) {
-    //
-  }
-
-  scan(doc) {
-    //
-  }
-}
-
-class NotImplementedError extends Error {
+class Person {
   constructor(name) {
-    const msg = `${name} is not implemented!`;
-    super(msg);
-    // maintain proper stack trace
-    if (Error.captureStackTrace)
-      Error.captureStackTrace(this, NotImplementedError);
-    // your custom stuff here :)
+    this.name = name;
   }
 }
 
-class OldFashionedPrinter extends Machine {
-  print(doc) {
-    // ok
+// LOW-LEVEL (STORAGE)
+
+class RelationshipBrowser {
+  constructor() {
+    if (this.constructor.name === 'RelationshipBrowser')
+      throw new Error('RelationshipBrowser is abstract!');
   }
 
-  // omitting this is the same as no-op impl
+  findAllChildrenOf(name) {}
+}
 
-  // fax(doc) {
-  //   // do nothing
+class Relationships extends RelationshipBrowser {
+  constructor() {
+    super();
+    this.data = [];
+  }
+
+  addParentAndChild(parent, child) {
+    this.data.push({
+      from: parent,
+      type: Relationship.parent,
+      to: child,
+    });
+    this.data.push({
+      from: child,
+      type: Relationship.child,
+      to: parent,
+    });
+  }
+
+  findAllChildrenOf(name) {
+    return this.data
+      .filter((r) => r.from.name === name && r.type === Relationship.parent)
+      .map((r) => r.to);
+  }
+}
+
+// HIGH-LEVEL (RESEARCH)
+
+class Research {
+  // constructor(relationships)
+  // {
+  //   // problem: direct dependence ↓↓↓↓ on storage mechanic
+  //   let relations = relationships.data;
+  //   for (let rel of relations.filter(r =>
+  //     r.from.name === 'John' &&
+  //     r.type === Relationship.parent
+  //   ))
+  //   {
+  //     console.log(`John has a child named ${rel.to.name}`);
+  //   }
   // }
 
-  scan(doc) {
-    // throw new Error('not implemented!');
-    throw new NotImplementedError('OldFashionedPrinter.scan');
+  constructor(browser) {
+    for (let p of browser.findAllChildrenOf('John')) {
+      console.log(`John has a child named ${p.name}`);
+    }
   }
 }
 
-// // solution
-class Printer {
-  print() {}
-}
+let parent = new Person('John');
+let child1 = new Person('Chris');
+let child2 = new Person('Matt');
 
-class Scanner {
-  scan() {}
-}
+// low-level module
+let rels = new Relationships();
+rels.addParentAndChild(parent, child1);
+rels.addParentAndChild(parent, child2);
 
-class Photocopier extends aggregation(Machine) {
-  print() {
-    // IDE won't help you here
-  }
-
-  scan() {
-    //
-  }
-}
-
-// we don't allow this!
-// const m = new Machine();
-
-const printer = new Photocopier();
-printer.fax(); // nothing happens
-//printer.scan();
+new Research(rels);
