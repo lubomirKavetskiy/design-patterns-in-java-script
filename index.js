@@ -167,3 +167,70 @@ console.log(
     )
   )
 );
+class Rectangle {
+  constructor(width, height) {
+    this._width = width;
+    this._height = height;
+  }
+
+  get width() {
+    return this._width;
+  }
+
+  get height() {
+    return this._height;
+  }
+
+  set width(value) {
+    this._width = value;
+  }
+
+  set height(value) {
+    this._height = value;
+  }
+
+  get area() {
+    return this._width * this._height;
+  }
+
+  toString() {
+    return `${this._width}*${this._height}`;
+  }
+}
+
+const rc = new Rectangle(2, 3);
+console.log(rc.toString());
+
+class Square extends Rectangle {
+  constructor(size) {
+    super(size, size);
+  }
+
+  set width(value) {
+    this._width = this._height = value;
+  }
+
+  set height(value) {
+    this._height = this._width = value;
+  }
+}
+
+const sq = new Square(5);
+console.log(sq.width);
+sq.width = 10;
+console.log(sq.toString());
+
+//
+const useIt = (instance) => {
+  const w = instance.width;
+
+  instance.height = 10;
+
+  console.log(`expected area of ${10 * w}, got ${instance.area}`);
+};
+
+const rc_2 = new Rectangle(2, 3);
+useIt(rc_2);
+
+const sq_2 = new Square(5);
+useIt(sq_2);

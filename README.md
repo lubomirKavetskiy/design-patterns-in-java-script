@@ -1,8 +1,6 @@
 # design-patterns-in-javascript
 
-Open-Closed Principle (OCP)
+Liskov Substitution Principle (OCP) This principle says: if you have a function which take a base class like a rectangle, it should be able to take a derived class (like a square) whithout breaking the functioanlity in any way whatsoever
 
-‘Software entities (classes, modules, functions, etc.) should be open for extension (inheritance), but closed for modification.’
-You should not jump to the Class and modify (add new methods) it just create sepate Classes and combine them.
-
-This principle tells you to write code in such a way that you will be able to add additional functionality without changing the existing code.
+For React: 'Components should abide by some kind of contract'
+So whenever a component uses another component, it shouldn’t break its functionality (or create any surprises).
