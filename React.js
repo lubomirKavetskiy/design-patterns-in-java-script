@@ -1,147 +1,45 @@
-import React, { useEffect, useReducer, useState } from 'react';
+import React from 'react';
 
-const initialState = {
-  isLoading: true,
-};
+export const User = ({ user }) => (
+  <>
+    <div> Name: {user.name}</div>
+    <div> Email: {user.email}</div>
+  </>
+);
 
-// COMPLEX STATE MANAGEMENT
-function reducer(state, action) {
-  switch (action.type) {
-    case 'LOADING':
-      return { isLoading: true };
-    case 'FINISHED':
-      return { isLoading: false };
-    default:
-      return state;
-  }
-}
+//BAD solution:
 
-export const SingleResponsibilityPrinciple = () => {
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [state, dispatch] = useReducer(reducer, initialState);
+export const User = ({ user }) => (
+  <>
+    <div> Name: {user.name}</div>
+    <div> Email: {user.email}</div>
+    {user.type === 'SUPER_ADMIN' && <div> Details about super admin</div>}
+    {user.type === 'ADMIN' && <div> Details about admin</div>}
+  </>
+);
 
-  const showDetails = (userId) => {
-    const user = filteredUsers.find((user) => user.id === userId);
-    alert(user.contact);
+//Solution:
+import { User } from './User';
+
+export const SuperAdmin = ({ user }) => (
+  <>
+    <User user={user} />
+    <div> This is super admin user details</div>
+  </>
+);
+
+export const SuperAdmin = ({ user }) => (
+  <>
+    <User user={user} />
+    <div> This is super admin user details</div>
+  </>
+);
+
+export default function App({ user }) {
+  const userByTypes = {
+    admin: <Admin user={user} />,
+    superadmin: <SuperAdmin user={user} />,
   };
 
-  // REMOTE DATA FETCHING
-  useEffect(() => {
-    dispatch({ type: 'LOADING' });
-    fetch('https://jsonplaceholder.typicode.com/users')
-      .then((response) => response.json())
-      .then((json) => {
-        dispatch({ type: 'FINISHED' });
-        setUsers(json);
-      });
-  }, []);
-
-  // PROCESSING DATA
-  useEffect(() => {
-    const filteredUsers = users.map((user) => {
-      return {
-        id: user.id,
-        name: user.name,
-        contact: `${user.phone} , ${user.email}`,
-      };
-    });
-    setFilteredUsers(filteredUsers);
-  }, [users]);
-
-  // COMPLEX UI RENDERING
-  return (
-    <>
-      <div> Users List</div>
-      <div> Loading state: {state.isLoading ? 'Loading' : 'Success'}</div>
-      {users.map((user) => {
-        return (
-          <div key={user.id} onClick={() => showDetails(user.id)}>
-            <div>{user.name}</div>
-            <div>{user.email}</div>
-          </div>
-        );
-      })}
-    </>
-  );
-};
-
-//Improving:
-export const useHttpGetRequest = (URL) => {
-  const [users, setUsers] = useState([]);
-  const [state, dispatch] = useReducer(loadingReducer, initialState);
-
-  useEffect(() => {
-    dispatch({ type: 'LOADING' });
-    fetch(URL)
-      .then((response) => response.json())
-      .then((json) => {
-        dispatch({ type: 'FINISHED' });
-        setUsers(json);
-      });
-  }, []);
-
-  return { users, isLoading: state.isLoading };
-};
-
-export function loadingReducer(state, action) {
-  switch (action.type) {
-    case 'LOADING':
-      return { isLoading: true };
-    case 'FINISHED':
-      return { isLoading: false };
-    default:
-      return state;
-  }
+  return <div>{userByTypes[`${user.type}`]}</div>;
 }
-
-import { useEffect, useState } from 'react';
-import { useHttpGetRequest } from './useHttpGet';
-const REMOTE_URL = 'https://jsonplaceholder.typicode.com/users';
-
-export const useGetRemoteData = () => {
-  const { users, isLoading } = useHttpGetRequest(REMOTE_URL);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-
-  useEffect(() => {
-    const filteredUsers = users.map((user) => {
-      return {
-        id: user.id,
-        name: user.name,
-        contact: `${user.phone} , ${user.email}`,
-      };
-    });
-    setFilteredUsers(filteredUsers);
-  }, [users]);
-
-  return { filteredUsers, isLoading };
-};
-
-const UserDetails = (user) => {
-  const showDetails = (user) => {
-    alert(user.contact);
-  };
-
-  return (
-    <div key={user.id} onClick={() => showDetails(user)}>
-      <div>{user.name}</div>
-      <div>{user.email}</div>
-    </div>
-  );
-};
-
-export const Users = () => {
-  const { filteredUsers, isLoading } = useGetRemoteData();
-
-  return (
-    <>
-      <div> Users List</div>
-      <div> Loading state: {isLoading ? 'Loading' : 'Success'}</div>
-      {filteredUsers.map((user) => (
-        <UserDetails user={user} />
-      ))}
-    </>
-  );
-};
-
-//This was a simple demonstration of how you can reduce the amount of code in each file and create beautiful and reusable components with the power of SOLID.

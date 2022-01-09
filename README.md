@@ -1,7 +1,8 @@
 # design-patterns-in-javascript
 
-A Class should have a single primary responsibility. It should only have one reason to change. It's a bad idea to add more than one responsibility to a Class. If you need additional responsibilities -> just make other class. It doesn't really cost you anything. Anti-Pattern: God object or God Class.
+Open-Closed Principle (OCP)
 
-Another term that we use - it's "separation of concerns". We split up complicated functionality into several diff parts which are somehow related (persistence, filter...)
+‘Software entities (classes, modules, functions, etc.) should be open for extension (inheritance), but closed for modification.’
+You should not jump to the Class and modify (add new methods) it just create sepate Classes and combine them.
 
-React: Component should do only one thing and does that well.
+This principle tells you to write code in such a way that you will be able to add additional functionality without changing the existing code.
