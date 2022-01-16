@@ -93,9 +93,6 @@ console.log(tag.toString());
 
 // fluent builder
 builder.clear();
-builder
-  .addChildFluent('li', 'foo')
-  .addChildFluent('li', 'bar')
-  .addChildFluent('li', 'baz');
+builder.addChildFluent('li', 'foo').addChildFluent('li', 'bar');
 
 console.log(builder.toString());
