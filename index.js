@@ -97,4 +97,5 @@ builder
   .addChildFluent('li', 'foo')
   .addChildFluent('li', 'bar')
   .addChildFluent('li', 'baz');
+
 console.log(builder.toString());
