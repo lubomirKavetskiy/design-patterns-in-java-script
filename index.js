@@ -1,82 +1,100 @@
-let Relationship = Object.freeze({
-  parent: 0,
-  child: 1,
-  sibling: 2,
-});
+// just a single paragraph using string concatenation
+const hello = 'hello';
+let html = [];
+html.push('<p>');
+html.push(hello);
+html.push('</p>');
+console.log(html.join(''));
 
-class Person {
-  constructor(name) {
+// a list with 2 words in it
+const words = ['hello', 'world'];
+html = [];
+html.push('<ul>\n');
+for (const word of words) html.push(`  <li>${word}</li>\n`);
+html.push('</ul>');
+console.log(html.join(''));
+
+class Tag {
+  static get indentSize() {
+    return 2;
+  }
+
+  constructor(name = '', text = '') {
     this.name = name;
-  }
-}
-
-// LOW-LEVEL (STORAGE)
-
-class RelationshipBrowser {
-  constructor() {
-    if (this.constructor.name === 'RelationshipBrowser')
-      throw new Error('RelationshipBrowser is abstract!');
+    this.text = text;
+    this.children = [];
   }
 
-  findAllChildrenOf(name) {}
-}
-
-class Relationships extends RelationshipBrowser {
-  constructor() {
-    super();
-    this.data = [];
-  }
-
-  addParentAndChild(parent, child) {
-    this.data.push({
-      from: parent,
-      type: Relationship.parent,
-      to: child,
-    });
-    this.data.push({
-      from: child,
-      type: Relationship.child,
-      to: parent,
-    });
-  }
-
-  findAllChildrenOf(name) {
-    return this.data
-      .filter((r) => r.from.name === name && r.type === Relationship.parent)
-      .map((r) => r.to);
-  }
-}
-
-// HIGH-LEVEL (RESEARCH)
-
-class Research {
-  // constructor(relationships)
-  // {
-  //   // problem: direct dependence ↓↓↓↓ on storage mechanic
-  //   let relations = relationships.data;
-  //   for (let rel of relations.filter(r =>
-  //     r.from.name === 'John' &&
-  //     r.type === Relationship.parent
-  //   ))
-  //   {
-  //     console.log(`John has a child named ${rel.to.name}`);
-  //   }
-  // }
-
-  constructor(browser) {
-    for (let p of browser.findAllChildrenOf('John')) {
-      console.log(`John has a child named ${p.name}`);
+  toStringImpl(indent) {
+    const html = [];
+    const i = ' '.repeat(indent * Tag.indentSize);
+    html.push(`${i}<${this.name}>\n`);
+    if (this.text.length > 0) {
+      html.push(' '.repeat(Tag.indentSize * (indent + 1)));
+      html.push(this.text);
+      html.push('\n');
     }
+
+    for (const child of this.children)
+      html.push(child.toStringImpl(indent + 1));
+
+    html.push(`${i}</${this.name}>\n`);
+    return html.join('');
+  }
+
+  toString() {
+    return this.toStringImpl(0);
+  }
+
+  static create(name) {
+    return new HtmlBuilder(name);
   }
 }
 
-let parent = new Person('John');
-let child1 = new Person('Chris');
-let child2 = new Person('Matt');
+class HtmlBuilder {
+  constructor(rootName) {
+    this.root = new Tag(rootName);
+    this.rootName = rootName;
+  }
 
-// low-level module
-let rels = new Relationships();
-rels.addParentAndChild(parent, child1);
-rels.addParentAndChild(parent, child2);
+  // non-fluent
+  addChild(childName, childText) {
+    const child = new Tag(childName, childText);
+    this.root.children.push(child);
+  }
 
-new Research(rels);
+  // fluent
+  addChildFluent(childName, childText) {
+    const child = new Tag(childName, childText);
+    this.root.children.push(child);
+    return this;
+  }
+
+  toString() {
+    return this.root.toString();
+  }
+
+  clear() {
+    this.root = new Tag(this.rootName);
+  }
+
+  build() {
+    return this.root;
+  }
+}
+
+// ordinary non-fluent builder
+//let builder = new HtmlBuilder('ul');
+const builder = Tag.create('ul');
+for (const word of words) builder.addChild('li', word);
+//console.log(builder.toString());
+const tag = builder.build();
+console.log(tag.toString());
+
+// fluent builder
+builder.clear();
+builder
+  .addChildFluent('li', 'foo')
+  .addChildFluent('li', 'bar')
+  .addChildFluent('li', 'baz');
+console.log(builder.toString());
