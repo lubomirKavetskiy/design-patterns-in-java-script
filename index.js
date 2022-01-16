@@ -1,98 +1,88 @@
-// just a single paragraph using string concatenation
-const hello = 'hello';
-let html = [];
-html.push('<p>');
-html.push(hello);
-html.push('</p>');
-console.log(html.join(''));
+class Person {
+  constructor() {
+    // address info
+    this.streetAddress = this.postcode = this.city = '';
 
-// a list with 2 words in it
-const words = ['hello', 'world'];
-html = [];
-html.push('<ul>\n');
-for (const word of words) html.push(`  <li>${word}</li>\n`);
-html.push('</ul>');
-console.log(html.join(''));
-
-class Tag {
-  static get indentSize() {
-    return 2;
-  }
-
-  constructor(name = '', text = '') {
-    this.name = name;
-    this.text = text;
-    this.children = [];
-  }
-
-  toStringImpl(indent) {
-    const html = [];
-    const i = ' '.repeat(indent * Tag.indentSize);
-    html.push(`${i}<${this.name}>\n`);
-    if (this.text.length > 0) {
-      html.push(' '.repeat(Tag.indentSize * (indent + 1)));
-      html.push(this.text);
-      html.push('\n');
-    }
-
-    for (const child of this.children)
-      html.push(child.toStringImpl(indent + 1));
-
-    html.push(`${i}</${this.name}>\n`);
-    return html.join('');
+    // employment info
+    this.companyName = this.position = '';
+    this.annualIncome = 0;
   }
 
   toString() {
-    return this.toStringImpl(0);
-  }
-
-  static create(name) {
-    return new HtmlBuilder(name);
+    return (
+      `Person lives at ${this.streetAddress}, ${this.city}, ${this.postcode}\n` +
+      `and works at ${this.companyName} as a ${this.position} earning ${this.annualIncome}`
+    );
   }
 }
 
-class HtmlBuilder {
-  constructor(rootName) {
-    this.root = new Tag(rootName);
-    this.rootName = rootName;
+class PersonBuilder {
+  constructor(person = new Person()) {
+    this.person = person;
   }
 
-  // non-fluent
-  addChild(childName, childText) {
-    const child = new Tag(childName, childText);
-    this.root.children.push(child);
+  get lives() {
+    return new PersonAddressBuilder(this.person);
   }
 
-  // fluent
-  addChildFluent(childName, childText) {
-    const child = new Tag(childName, childText);
-    this.root.children.push(child);
-    return this;
-  }
-
-  toString() {
-    return this.root.toString();
-  }
-
-  clear() {
-    this.root = new Tag(this.rootName);
+  get works() {
+    return new PersonJobBuilder(this.person);
   }
 
   build() {
-    return this.root;
+    return this.person;
   }
 }
 
-// ordinary non-fluent builder
-//let builder = new HtmlBuilder('ul');
-const builder = Tag.create('ul');
-for (const word of words) builder.addChild('li', word);
-//console.log(builder.toString());
-const tag = builder.build();
-console.log(tag.toString());
+class PersonJobBuilder extends PersonBuilder {
+  constructor(person) {
+    super(person);
+  }
 
-// fluent builder
-builder.clear();
-builder.addChildFluent('li', 'foo').addChildFluent('li', 'bar');
+  at(companyName) {
+    this.person.companyName = companyName;
+    return this;
+  }
 
-console.log(builder.toString());
+  asA(position) {
+    this.person.position = position;
+    return this;
+  }
+
+  earning(annualIncome) {
+    this.person.annualIncome = annualIncome;
+    return this;
+  }
+}
+
+class PersonAddressBuilder extends PersonBuilder {
+  constructor(person) {
+    super(person);
+  }
+
+  at(streetAddress) {
+    this.person.streetAddress = streetAddress;
+    return this;
+  }
+
+  withPostcode(postcode) {
+    this.person.postcode = postcode;
+    return this;
+  }
+
+  in(city) {
+    this.person.city = city;
+    return this;
+  }
+}
+
+let pb = new PersonBuilder();
+let person = pb.lives
+  .at('123 London Road')
+  .in('London')
+  .withPostcode('SW12BC')
+  .works.at('Fabrikam')
+  .asA('Engineer')
+  .earning(123000)
+  .build();
+console.log(person.toString());
